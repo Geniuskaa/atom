@@ -249,7 +249,7 @@ func regCar(ctxTimeOut context.Context, stdInCh <-chan string, client carSrvGrpc
 
 	var carTypeProto carSrvGrpcV1.CarType
 
-	switch carType {
+	switch strings.ToLower(carType) {
 	case "carsharing":
 		carTypeProto = carSrvGrpcV1.CarType_Carsharing
 	case "taxi":
@@ -322,7 +322,7 @@ func addCarInfo(ctxTimeOut context.Context, stdInCh <-chan string, client carSrv
 
 	var carTypeProto carSrvGrpcV1.CarType
 
-	switch carType {
+	switch strings.ToLower(carType) {
 	case "carsharing":
 		carTypeProto = carSrvGrpcV1.CarType_Carsharing
 	case "taxi":
@@ -407,7 +407,7 @@ func updateCarInfo(ctxTimeOut context.Context, stdInCh <-chan string, client car
 
 	var carTypeProto carSrvGrpcV1.CarType
 
-	switch carType {
+	switch strings.ToLower(carType) {
 	case "carsharing":
 		carTypeProto = carSrvGrpcV1.CarType_Carsharing
 	case "taxi":
