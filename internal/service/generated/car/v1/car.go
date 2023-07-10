@@ -57,12 +57,13 @@ func NewService(logger *zap.SugaredLogger, repo repository.Car, j1939Srv *saeJ19
 //}
 
 func srvCarTypeToGrpc(t string) CarType {
+
 	switch t {
-	case CarType_Carsharing.String():
+	case strings.ToUpper(CarType_Carsharing.String()):
 		return CarType_Carsharing
-	case CarType_Taxi.String():
+	case strings.ToUpper(CarType_Taxi.String()):
 		return CarType_Taxi
-	case CarType_Delivery.String():
+	case strings.ToUpper(CarType_Delivery.String()):
 		return CarType_Delivery
 	default:
 		return CarType_Undefined
