@@ -16,6 +16,6 @@ WORKDIR /app
 
 COPY --from=build /app/certs ./certs
 COPY --from=build /app/build/main ./main
-COPY --from=build /app/logs/logs.txt ./logs/
+COPY --from=build /app/logs ./logs
 
 ENTRYPOINT ["./main"]

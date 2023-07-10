@@ -18,3 +18,12 @@ docker exec -it client bash
 ```
 
 5. Done
+
+
+Задание со * также выполнено. Данные полученные с генератора клиента выводятся
+в контейнере сервера.
+
+Для реализации интерфейса использовались данные стать:
+1) https://goo.su/YRJRT
+2) https://d1.amobbs.com/bbs_upload782111/files_23/ourdev_515237.pdf
+3) https://abit.spb.ru/files/m240_J1939.pdf
