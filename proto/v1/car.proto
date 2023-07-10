@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+option go_package = "atom/internal/service/generated/car/v1";
+import "google/protobuf/empty.proto";
+
+service CarService{
+  rpc RegisterCar(CarInfo) returns (CarRegistered) {}
+  rpc AddCarInfo(UploadCarInfo) returns (IsOK) {}
+  rpc UpdateCarInfo(UploadCarInfo) returns (IsOK) {}
+  rpc DeleteCarInfo(CarID) returns (IsOK) {}
+  rpc GetCarInfo(CarPlate) returns (CarInfo) {}
+  rpc GetAllCarsInfo(google.protobuf.Empty) returns (AllCarsInfo) {}
+  rpc GetCarMileage(CarPlate) returns (CarMileage) {}
+  rpc AddCarMileage(CarMileageUpload) returns (IsOK) {}
+  rpc GetCarUsageCost(CarPlateAndCosts) returns (CarUsageCost) {}
+  rpc SendCarMetrics(stream CarMetrics) returns (google.protobuf.Empty) {}
+}
+
+
+enum carType {
+  Undefined = 0;
+  Carsharing = 1;
+  Taxi = 2;
+  Delivery = 3;
+}
+
+message CarInfo {
+  string plate  = 1;
+  string model  = 2;
+  string yearOfManufacture  = 3;
+  carType type = 4;
+}
+
+message AllCarsInfo {
+  repeated CarInfo cars = 1;
+}
+
+message UploadCarInfo {
+  int32 id = 1;
+  string plate  = 2;
+  string model  = 3;
+  string yearOfManufacture  = 4;
+  carType type = 5;
+}
+
+message CarRegistered {
+  int32 id = 1;
+  bool hasError = 2;
+}
+
+message IsOK {
+  bool ok = 1;
+}
+
+message CarID {
+  int32 id = 1;
+}
+
+message CarPlate {
+  string plate = 1;
+}
+
+message CarPlateAndCosts {
+  string plate = 1;
+  int32 fuelCosts = 2;
+  int32 carTax = 3;
+  int32 autoMaintenanceCosts = 4;
+  int32 autoConsumablesCost = 5;
+  int32 insuranceCost = 6;
+}
+
+message CarMileage {
+  int32 mileage = 1;
+}
+
+message CarMileageUpload {
+  int32 id = 1;
+  int32 mileage = 2;
+}
+
+message CarUsageCost {
+  int32 costInRUB = 1;
+}
+
+message CarMetrics {
+  bytes ID = 1;
+  bytes Data = 2;
+  optional int32 Period = 3;
+}

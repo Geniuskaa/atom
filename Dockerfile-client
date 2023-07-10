@@ -1,0 +1,20 @@
+FROM golang:1.20 AS build
+
+WORKDIR /app
+COPY go.mod go.sum ./
+
+RUN go mod download && go mod tidy
+
+COPY . ./
+RUN CGO_ENABLED=0 go build -o ./build/main ./client
+
+FROM alpine
+
+WORKDIR /app
+
+RUN apk update && apk add bash
+
+COPY --from=build /app/certs ./certs
+COPY --from=build /app/build/main ./main
+
+ENTRYPOINT ["./main"]
