@@ -108,6 +108,7 @@ func (c *carRepo) GetAllCarsInfo(ctx context.Context) ([]model.Car, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetAllCarsInfo failed: %w", err)
 	}
+	defer rows.Close()
 
 	arr := make([]model.Car, 0, 20)
 	for rows.Next() {
