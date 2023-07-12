@@ -1,6 +1,10 @@
 syntax = "proto3";
 
-option go_package = "atom/internal/service/generated/car/v1";
+package v1;
+
+option go_package = "atom/internal/service/generated/car/car_v1";
+
+
 import "google/protobuf/empty.proto";
 
 service CarService{

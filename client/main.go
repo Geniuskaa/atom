@@ -9,9 +9,11 @@ import (
 	"flag"
 	"fmt"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/sony/gobreaker"
 	"golang.org/x/exp/rand"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -47,6 +49,36 @@ var (
 	PORT string
 )
 
+var cb *gobreaker.CircuitBreaker
+
+func init() {
+
+	settings := gobreaker.Settings{
+		Name:     "gRPC unary",
+		Interval: time.Hour * 12,
+		Timeout:  time.Second * 50,
+		ReadyToTrip: func(counts gobreaker.Counts) bool {
+			failRatio := float64(counts.TotalFailures) / float64(counts.Requests)
+			return failRatio >= 0.5
+		},
+		OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+			if to == gobreaker.StateOpen {
+				log.Println("State Open!")
+			}
+
+			if from == gobreaker.StateOpen && to == gobreaker.StateHalfOpen {
+				log.Println("Going from Open to Half Open!")
+			}
+
+			if from == gobreaker.StateHalfOpen && to == gobreaker.StateClosed {
+				log.Println("Going from Half Open to Closed!")
+			}
+		},
+	}
+
+	cb = gobreaker.NewCircuitBreaker(settings)
+}
+
 func main() {
 	flag.StringVar(&ADDR, "a", "", "")
 	flag.StringVar(&PORT, "p", "", "")
@@ -61,8 +93,39 @@ func main() {
 		panic(err)
 	}
 
+	//var retryPolicy = `{
+	//        "methodConfig": [{
+	//            // config per method or all methods under service
+	//            "name": [{"service": "grpc.examples.echo.Echo"}],
+	//            "waitForReady": true,
+	//
+	//            "retryPolicy": {
+	//                "MaxAttempts": 4,
+	//                "InitialBackoff": ".01s",
+	//                "MaxBackoff": ".01s",
+	//                "BackoffMultiplier": 1.0,
+	//                // this value is grpc code
+	//                "RetryableStatusCodes": [ "UNAVAILABLE" ]
+	//            }
+	//        }]
+	//    }`
+
+	var retry = `{
+		"methodConfig": [{
+		  "name": [{"service": "echo.Echo","method":"UnaryEcho"}],
+		  "retryPolicy": {
+			  "MaxAttempts": 4,
+			  "InitialBackoff": ".01s",
+			  "MaxBackoff": ".01s",
+			  "BackoffMultiplier": 1.0,
+			  "RetryableStatusCodes": [ "UNAVAILABLE" ]
+		  }
+		}]}`
+
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(tlsCreds),
+		//Конфиг с настройками ретраев
+		grpc.WithDefaultServiceConfig(retry),
 	}
 
 	conn, err := grpc.DialContext(mainCtx, net.JoinHostPort(ADDR, PORT), opts...)
@@ -128,7 +191,7 @@ func main() {
 		case 2:
 			clearConsole()
 			getCarInfo(ctxTimeOut, stdInCh, client)
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * 4)
 		case 3:
 			clearConsole()
 			addCarInfo(ctxTimeOut, stdInCh, client)
@@ -284,16 +347,30 @@ func getCarInfo(ctxTimeOut context.Context, stdInCh <-chan string, client carSrv
 	plate := <-stdInCh
 	req := carSrvGrpcV1.CarPlate{Plate: plate}
 
-	resp, err := client.GetCarInfo(ctxTimeOut, &req)
+	rawResp, err := cb.Execute(func() (interface{}, error) {
+
+		fmt.Println("I am entered!")
+		resp, err := client.GetCarInfo(ctxTimeOut, &req)
+		if err != nil {
+			fmt.Println(err)
+			//fmt.Println("Что-то пошло не так. Попробуйте снова!")
+			return nil, err
+		}
+
+		return resp, nil
+	})
+
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println("Что-то пошло не так. Попробуйте снова!")
+		fmt.Println("Не удалось получить данные автомобиля")
 		return
 	}
-	fmt.Println("Номер автомобиля: ", resp.GetPlate())
-	fmt.Println("Модель автомобиля: ", resp.GetModel())
-	fmt.Println("Год выпуска автомобиля: ", resp.GetYearOfManufacture())
-	fmt.Println("Тип автомобиля: ", resp.GetType())
+
+	cleanResp := rawResp.(*carSrvGrpcV1.CarInfo)
+
+	fmt.Println("Номер автомобиля: ", cleanResp.GetPlate())
+	fmt.Println("Модель автомобиля: ", cleanResp.GetModel())
+	fmt.Println("Год выпуска автомобиля: ", cleanResp.GetYearOfManufacture())
+	fmt.Println("Тип автомобиля: ", cleanResp.GetType())
 }
 
 func addCarInfo(ctxTimeOut context.Context, stdInCh <-chan string, client carSrvGrpcV1.CarServiceClient) {
