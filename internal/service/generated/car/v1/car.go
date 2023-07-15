@@ -2,6 +2,7 @@ package v1
 
 import (
 	"atom/internal/database/repository"
+	"atom/internal/errs"
 	"atom/internal/model"
 	"atom/internal/service/fleetManagmentSystem/saeJ1939"
 	"context"
@@ -12,6 +13,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"io"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -89,7 +91,8 @@ func (s *Service) RegisterCar(ctx context.Context, ci *CarInfo) (*CarRegistered,
 	if err != nil {
 		s.logger.Errorf("RegisterCar failed: %w", err)
 
-		return nil, err
+		e := errs.NewError(http.StatusInternalServerError, "Something gone wrong...")
+		return nil, e.GrpcErr()
 	}
 
 	resp := CarRegistered{}
@@ -114,7 +117,8 @@ func (s *Service) AddCarInfo(ctx context.Context, ci *UploadCarInfo) (*IsOK, err
 		s.logger.Errorf("AddCarInfo failed: %w", err)
 		resp.Ok = false
 
-		return &resp, err
+		e := errs.NewError(http.StatusInternalServerError, "Something gone wrong...")
+		return &resp, e.GrpcErr()
 	}
 
 	resp.Ok = true
@@ -138,8 +142,8 @@ func (s *Service) UpdateCarInfo(ctx context.Context, ci *UploadCarInfo) (*IsOK, 
 	if err != nil {
 		s.logger.Errorf("UpdateCarInfo failed: %w", err)
 		resp.Ok = false
-
-		return &resp, err
+		e := errs.NewError(http.StatusInternalServerError, "Something gone wrong...")
+		return &resp, e.GrpcErr()
 	}
 
 	resp.Ok = true
