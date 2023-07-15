@@ -6,6 +6,7 @@ import (
 	"atom/internal/service/fleetManagmentSystem/saeJ1939"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/golang/protobuf/ptypes/empty"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
@@ -189,8 +190,8 @@ func (s *Service) GetAllCarsInfo(ctx context.Context, e *empty.Empty) (*AllCarsI
 	cars, err := s.db.GetAllCarsInfo(ctxTimeout)
 	if err != nil {
 		s.logger.Errorf("GetAllCarsInfo failed: %w", err)
-
-		return nil, err
+		fmt.Println("Db error!")
+		return nil, status.Errorf(codes.Unavailable, err.Error())
 	}
 
 	carDTOs := make([]*CarInfo, 0, len(cars))
@@ -207,7 +208,8 @@ func (s *Service) GetAllCarsInfo(ctx context.Context, e *empty.Empty) (*AllCarsI
 
 	resp := AllCarsInfo{Cars: carDTOs}
 
-	return &resp, nil
+	fmt.Println("Returned cars!")
+	return &resp, status.Error(codes.Unavailable, "")
 }
 
 func (s *Service) GetCarMileage(ctx context.Context, p *CarPlate) (*CarMileage, error) {

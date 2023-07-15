@@ -9,9 +9,11 @@ import (
 	"flag"
 	"fmt"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/sony/gobreaker"
 	"golang.org/x/exp/rand"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"log"
 	"net"
@@ -79,6 +81,8 @@ func init() {
 	cb = gobreaker.NewCircuitBreaker(settings)
 }
 
+const BackoffMultiplier = 1.5
+
 func main() {
 	flag.StringVar(&ADDR, "a", "", "")
 	flag.StringVar(&PORT, "p", "", "")
@@ -93,39 +97,26 @@ func main() {
 		panic(err)
 	}
 
-	//var retryPolicy = `{
-	//        "methodConfig": [{
-	//            // config per method or all methods under service
-	//            "name": [{"service": "grpc.examples.echo.Echo"}],
-	//            "waitForReady": true,
-	//
-	//            "retryPolicy": {
-	//                "MaxAttempts": 4,
-	//                "InitialBackoff": ".01s",
-	//                "MaxBackoff": ".01s",
-	//                "BackoffMultiplier": 1.0,
-	//                // this value is grpc code
-	//                "RetryableStatusCodes": [ "UNAVAILABLE" ]
-	//            }
-	//        }]
-	//    }`
+	//Конфиг с настройками ретраев
+	retryOpts := []retry.CallOption{
+		retry.WithMax(4),
+		retry.WithBackoff(func(ctx context.Context, attempt uint) time.Duration {
 
-	var retry = `{
-		"methodConfig": [{
-		  "name": [{"service": "echo.Echo","method":"UnaryEcho"}],
-		  "retryPolicy": {
-			  "MaxAttempts": 4,
-			  "InitialBackoff": ".01s",
-			  "MaxBackoff": ".01s",
-			  "BackoffMultiplier": 1.0,
-			  "RetryableStatusCodes": [ "UNAVAILABLE" ]
-		  }
-		}]}`
+			mult := float64(attempt) * BackoffMultiplier
+			fmt.Println(mult)
+
+			return time.Second * time.Duration(mult)
+		}),
+		retry.WithOnRetryCallback(func(ctx context.Context, attempt uint, err error) {
+			fmt.Printf("We make a %d retry!\n", attempt)
+		}),
+		retry.WithCodes(codes.Unavailable),
+	}
 
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(tlsCreds),
-		//Конфиг с настройками ретраев
-		grpc.WithDefaultServiceConfig(retry),
+
+		grpc.WithChainUnaryInterceptor(retry.UnaryClientInterceptor(retryOpts...)),
 	}
 
 	conn, err := grpc.DialContext(mainCtx, net.JoinHostPort(ADDR, PORT), opts...)
