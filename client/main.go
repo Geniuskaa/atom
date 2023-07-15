@@ -103,7 +103,6 @@ func main() {
 		retry.WithBackoff(func(ctx context.Context, attempt uint) time.Duration {
 
 			mult := float64(attempt) * BackoffMultiplier
-			fmt.Println(mult)
 
 			return time.Second * time.Duration(mult)
 		}),
@@ -344,7 +343,6 @@ func getCarInfo(ctxTimeOut context.Context, stdInCh <-chan string, client carSrv
 		resp, err := client.GetCarInfo(ctxTimeOut, &req)
 		if err != nil {
 			fmt.Println(err)
-			//fmt.Println("Что-то пошло не так. Попробуйте снова!")
 			return nil, err
 		}
 

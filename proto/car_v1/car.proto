@@ -2,10 +2,11 @@ syntax = "proto3";
 
 package v1;
 
-option go_package = "atom/internal/service/generated/car/car_v1";
+option go_package = "atom/internal/service/generated/car/v1";
 
 
 import "google/protobuf/empty.proto";
+import "validate.proto";
 
 service CarService{
   rpc RegisterCar(CarInfo) returns (CarRegistered) {}
@@ -61,7 +62,7 @@ message CarID {
 }
 
 message CarPlate {
-  string plate = 1;
+  string plate = 1 [(validate.rules).string = {min_len: 7, max_len: 9}];
 }
 
 message CarPlateAndCosts {

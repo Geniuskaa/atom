@@ -171,6 +171,11 @@ func (s *Service) GetCarInfo(ctx context.Context, p *CarPlate) (*CarInfo, error)
 	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
+	err := p.Validate()
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "Your data are invalid!")
+	}
+
 	car, err := s.db.GetCarInfo(ctxTimeout, p.GetPlate())
 	if err != nil {
 		s.logger.Errorf("GetCarInfo failed: %w", err)
