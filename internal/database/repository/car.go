@@ -4,17 +4,18 @@ import (
 	"atom/internal/model"
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"time"
 )
 
-type carRepo struct {
+type CarRepo struct {
 	pool *pgxpool.Pool
 }
 
-func NewCarRepo(pool *pgxpool.Pool) *carRepo {
-	return &carRepo{pool: pool}
+func NewCarRepo(pool *pgxpool.Pool) *CarRepo {
+	return &CarRepo{pool: pool}
 }
 
 type Car interface {
@@ -27,7 +28,7 @@ type Car interface {
 	AddCarMileage(ctx context.Context, id int, km int) error
 }
 
-func (c *carRepo) RegisterCar(ctx context.Context, car *model.Car) (int, error) {
+func (c *CarRepo) RegisterCar(ctx context.Context, car *model.Car) (int, error) {
 	t, err := time.Parse("2006", car.YearOfManufacture)
 	if err != nil {
 		return -1, fmt.Errorf("RegisterCar failed: %w", err)
@@ -51,7 +52,7 @@ func (c *carRepo) RegisterCar(ctx context.Context, car *model.Car) (int, error) 
 	return id, nil
 }
 
-func (c *carRepo) UpdateCarInfo(ctx context.Context, car *model.Car, id int) error {
+func (c *CarRepo) UpdateCarInfo(ctx context.Context, car *model.Car, id int) error {
 	t, err := time.Parse("2006", car.YearOfManufacture)
 	if err != nil {
 		return fmt.Errorf("UpdateCarInfo failed: %w", err)
@@ -72,7 +73,7 @@ func (c *carRepo) UpdateCarInfo(ctx context.Context, car *model.Car, id int) err
 	return nil
 }
 
-func (c *carRepo) GetCarInfo(ctx context.Context, plate string) (*model.Car, error) {
+func (c *CarRepo) GetCarInfo(ctx context.Context, plate string) (*model.Car, error) {
 	row := c.pool.QueryRow(ctx, `SELECT plate, model, year_of_manufacture, type, is_deleted FROM car_info WHERE plate=$1`, plate)
 
 	car := model.Car{}
@@ -94,7 +95,7 @@ func (c *carRepo) GetCarInfo(ctx context.Context, plate string) (*model.Car, err
 	return &car, nil
 }
 
-func (c *carRepo) DeleteCarInfo(ctx context.Context, id int) error {
+func (c *CarRepo) DeleteCarInfo(ctx context.Context, id int) error {
 	_, err := c.pool.Exec(ctx, `UPDATE car_info SET is_deleted=true WHERE id=$1;`, id)
 	if err != nil {
 		return fmt.Errorf("DeleteCarInfo failed: %w", err)
@@ -103,7 +104,7 @@ func (c *carRepo) DeleteCarInfo(ctx context.Context, id int) error {
 	return nil
 }
 
-func (c *carRepo) GetAllCarsInfo(ctx context.Context) ([]model.Car, error) {
+func (c *CarRepo) GetAllCarsInfo(ctx context.Context) ([]model.Car, error) {
 	rows, err := c.pool.Query(ctx, `SELECT plate, model, year_of_manufacture, type FROM car_info WHERE is_deleted=false;`)
 	if err != nil {
 		return nil, fmt.Errorf("GetAllCarsInfo failed: %w", err)
@@ -129,7 +130,7 @@ func (c *carRepo) GetAllCarsInfo(ctx context.Context) ([]model.Car, error) {
 	return arr, nil
 }
 
-func (c *carRepo) GetCarMileage(ctx context.Context, plate string) (int, error) {
+func (c *CarRepo) GetCarMileage(ctx context.Context, plate string) (int, error) {
 	row := c.pool.QueryRow(ctx, `SELECT mileage FROM car_mileage WHERE plate=$1;`, plate)
 
 	mileage := -1
@@ -141,7 +142,7 @@ func (c *carRepo) GetCarMileage(ctx context.Context, plate string) (int, error) 
 	return mileage, nil
 }
 
-func (c *carRepo) AddCarMileage(ctx context.Context, id int, km int) error {
+func (c *CarRepo) AddCarMileage(ctx context.Context, id int, km int) error {
 	row := c.pool.QueryRow(ctx, `WITH car_plate AS (SELECT plate FROM car_info WHERE id=$1) SELECT count(*) 
 		FROM car_mileage WHERE plate = (SELECT plate FROM car_plate);`, id)
 	count := 0

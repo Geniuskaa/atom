@@ -137,8 +137,8 @@ func (m *J1939_MSG_Packed) Unpack() (J1939_MSG_Unpacked, error) {
 	offsetR -= 8
 	//dataPage := binFromInt[offsetL:offsetR]
 
-	offsetL -= 1
-	offsetR -= 1
+	offsetL--
+	offsetR--
 	//extendedDataPage := binFromInt[offsetL:offsetR]
 
 	offsetR -= 1

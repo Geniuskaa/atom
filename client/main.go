@@ -8,13 +8,6 @@ import (
 	"crypto/x509"
 	"flag"
 	"fmt"
-	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
-	"github.com/sony/gobreaker"
-	"golang.org/x/exp/rand"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials"
 	"log"
 	"net"
 	"os"
@@ -24,6 +17,14 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
+	"github.com/sony/gobreaker"
+	"golang.org/x/exp/rand"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 )
 
 func loadTLSCredentials() (credentials.TransportCredentials, error) {
@@ -225,6 +226,7 @@ func main() {
 
 }
 
+// nolint:errcheck
 func clearConsole() {
 	cmdName := "clear"
 	cmd := exec.Command(cmdName)

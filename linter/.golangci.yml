@@ -1,0 +1,200 @@
+run:
+  timeout: 5m
+  issues-exit-code: 2
+  tests: false
+  allow-parallel-runners: true
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+linters-settings:
+  errcheck:
+    check-blank: true
+  govet:
+    check-shadowing: true
+    enable-all: true
+  dupl:
+    # Tokens count to trigger issue.
+    # Default: 150
+    threshold: 100
+  goconst:
+    min-len: 2
+    min-occurrences: 3
+    ignore-tests: true
+    numbers: true
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+  godox:
+    keywords:
+      - NOTE
+      - OPTIMIZE # marks code that should be optimized before merging
+      - HACK # marks hack-around that should be removed before merging
+      - BUG
+      - TODO
+      - FIXME
+  gosec:
+    # Filter out the issues with a lower severity than the given value.
+    # Valid options are: low, medium, high.
+    # Default: low
+    severity: low
+      # Filter out the issues with a lower confidence than the given value.
+      # Valid options are: low, medium, high.
+      # Default: low
+    confidence: low
+    config:
+      # Globals are applicable to all rules.
+      global:
+        # If true, ignore #nosec in comments (and an alternative as well).
+        # Default: false
+        nosec: true
+        # Audit mode enables addition checks that for normal code analysis might be too nosy.
+        # Default: false
+        audit: true
+  nestif:
+    # Minimal complexity of if statements to report.
+    # Default: 5
+    min-complexity: 3
+  prealloc:
+    # IMPORTANT: we don't recommend using this linter before doing performance profiling.
+    # For most programs usage of prealloc will be a premature optimization.
+
+    # Report pre-allocation suggestions only on simple loops that have no returns/breaks/continues/gotos in them.
+    # Default: true
+    simple: true
+    # Report pre-allocation suggestions on for loops.
+    # Default: false
+    for-loops: true
+  revive:
+    # Default: warning
+    severity: warning
+    # Sets the default failure confidence.
+    # This means that linting errors with less than 0.8 confidence will be ignored.
+    # Default: 0.8
+    confidence: 0.1
+    rules:
+      - name: context-as-argument
+        severity: warning
+        disabled: false
+      - name: time-equal
+        severity: warning
+        disabled: false
+      - name: datarace
+        severity: warning
+        disabled: false
+      - name: cyclomatic
+        severity: warning
+        disabled: false
+        arguments: [ 8 ]
+      - name: waitgroup-by-value
+        severity: warning
+        disabled: false
+      - name: optimize-operands-order
+        severity: warning
+        disabled: false
+      - name: useless-break
+        severity: warning
+        disabled: false
+      - name: function-length
+        severity: warning
+        disabled: false
+#        int, int (defaults to 50 statements, 75 lines)
+        arguments: [ 40, 70 ]
+      - name: defer
+        severity: warning
+        disabled: false
+        arguments:
+          - [ "call-chain", "loop", "recover", "immediate-recover", "return" ]
+      - name: identical-branches
+        severity: warning
+        disabled: false
+      - name: unconditional-recursion
+        severity: warning
+        disabled: false
+      - name: early-return
+        severity: warning
+        disabled: false
+      - name: string-of-int
+        severity: warning
+        disabled: false
+      - name: cognitive-complexity
+        severity: warning
+        disabled: false
+        arguments: [ 10 ]
+      - name: import-shadowing
+        severity: warning
+        disabled: false
+      - name: line-length-limit
+        severity: warning
+        disabled: false
+        arguments: [ 80 ]
+      - name: atomic
+        severity: warning
+        disabled: false
+      - name: range-val-address
+        severity: warning
+        disabled: false
+      - name: range-val-in-closure
+        severity: warning
+        disabled: false
+      - name: modifies-value-receiver
+        severity: warning
+        disabled: false
+      - name: unnecessary-stmt
+        severity: warning
+        disabled: false
+      - name: add-constant
+        severity: warning
+        disabled: false
+        arguments:
+          - maxLitCount: "3"
+            allowStrs: '""'
+            allowInts: "0,1,2"
+            allowFloats: "0.0,0.,1.0,1.,2.0,2."
+      - name: unreachable-code
+        severity: warning
+        disabled: false
+  nolintlint:
+    require-explanation: true
+    require-specific: true
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - unused
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - containedctx
+    - dupl
+    - errname
+    - exportloopref
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - godox
+    - gosec
+    - loggercheck
+    - mirror
+    - nestif
+    - prealloc
+    - reassign
+    - revive
+    - sqlclosecheck
+    - unparam
+    - wrapcheck
+
+
+
+
+
